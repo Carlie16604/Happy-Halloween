@@ -8,6 +8,7 @@ app.use(cors())
 app.use(morgan("dev"))
 app.use(express.json())
 
+//works :D
 app.get('/api/halloween', async(req, res, next) => {
     try {
         const SQL = `
@@ -21,6 +22,7 @@ app.get('/api/halloween', async(req, res, next) => {
     }
 });
 
+//works :D
 app.get('/api/halloween/:id', async (req,res,next) => {
     try {
         const SQL = `
@@ -32,14 +34,16 @@ app.get('/api/halloween/:id', async (req,res,next) => {
         if(response.rows.length === 0){
             throw new Error("ID does not exist dude")
         }
-        res.send(response.rows)
+        res.send(response.rows[0])
     } catch (error) {
         next(error)
     }
 });
 
+//works :D
 app.post('/api/halloween', async (req, res, next) => {
-    const body = req.body
+    // const body = req.body
+    console.log(req.body)
     // you dont actually need this ^^^
     try {
         const SQL = `
@@ -48,13 +52,14 @@ app.post('/api/halloween', async (req, res, next) => {
         RETURNING *
         `;
         const response = await client.query(SQL, [req.body.name, req.body.type, req.body.count])
-        res.send(response.rows)
+        res.send(response.rows[0])
     } catch (error) {
         next(error)
     }
 });
 
-app.put('api/halloween', async (req,res, next) => {
+//works :D
+app.put('/api/halloween/:id', async (req,res, next) => {
     try {
         const SQL = `
             UPDATE halloween
@@ -63,8 +68,23 @@ app.put('api/halloween', async (req,res, next) => {
             RETURNING *
         `;
         const response = await client.query(SQL, [req.body.name, req.body.type, req.body.count, req.params.id])
-        res.send(response.rows)
+        res.send(response.rows[0])
     } catch (error) {
+        next(error)
+    }
+});
+
+//works :D
+app.delete('/api/halloween/:id', async (req,res,next) => {
+    try {
+        const SQL = `
+            DELETE 
+            FROM halloween
+            WHERE id=$1
+            `;
+            const response = await client.query(SQL, [req.params.id])
+            res.send(response.rows[0])
+        } catch (error) {
         next(error)
     }
 });
@@ -74,26 +94,13 @@ app.use('*', (req, res, next) => {
     res.status(404).send("Invalid Route Silly Goober")
 });
 
-//error handling: custom
+//error handling: custom 500 route
 app.use((err, req, res, next) => {
     console.log("error handler")
     res.status(500).send(err.message)
 });
 
-app.delete('api/halloween/:id', async (req,res,next) => {
-    try {
-        const SQL = `
-            DELETE 
-            FROM halloween
-            WHERE id=$1
-        `;
-        const response = await client.query(SQL, [req.params.id])
-        res.send(response.rows)
-    } catch (error) {
-        next(error)
-    }
-});
-
+//seeded data
 const start = async() => {
     await client.connect()
     console.log("connected to db")
